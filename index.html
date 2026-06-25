@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Porcelain Veneer Color Wheel</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a1220;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem 1rem 2rem;
+}
+#app {
+  display: flex; flex-direction: column;
+  width: 100%; max-width: 820px;
+  background: #0d1b2e;
+  border-radius: 14px;
+  padding: 1.25rem;
+  gap: 12px;
+}
+
+/* Header */
+#header {
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #c9a84c33;
+}
+#header h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary, #e8dfc0);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#header p {
+  font-size: 11px;
+  color: #8ba8c4;
+  margin-top: 2px;
+}
+
+/* Top row */
+#top-row { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
+.dd-group { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.dd-label { font-size: 8.5px; font-weight: 600; color: #c9a84c; text-transform: uppercase; letter-spacing: 0.12em; }
+.field-box {
+  background: #162438; border: 1px solid #c9a84c44; border-radius: 6px;
+  height: 34px; display: flex; align-items: center; padding: 0 10px;
+  font-size: 11px; font-weight: 500; color: #e8dfc0;
+}
+.custom-dd { position: relative; }
+.custom-dd-trigger {
+  background: #162438; border: 1px solid #c9a84c44; border-radius: 6px;
+  height: 34px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 10px; font-size: 11px; font-weight: 500; color: #e8dfc0;
+  cursor: pointer; user-select: none; gap: 8px;
+}
+.custom-dd-trigger.disabled { opacity: 0.4; cursor: not-allowed; }
+.arrow { width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid #c9a84c; flex-shrink:0; }
+.arrow.open { border-top:none; border-bottom:6px solid #c9a84c; }
+.custom-dd-menu {
+  display:none; position:absolute; top:38px; left:0; right:0;
+  background:#162438; border:1px solid #c9a84c55; border-radius:6px;
+  z-index:999; max-height:220px; overflow-y:auto;
+}
+.custom-dd-menu.open { display:block; }
+.custom-dd-item { padding:8px 12px; font-size:11px; font-weight:500; color:#e8dfc0; cursor:pointer; }
+.custom-dd-item:hover { background:#1e3a5a; }
+
+/* Main row */
+#main-row { display:flex; flex-direction:row; align-items:flex-start; gap:0; }
+#info-panel {
+  width: 190px; min-width: 190px; flex-shrink:0;
+  padding: 4px 16px 0 0;
+  display:flex; flex-direction:column; gap:14px;
+}
+#info-title { font-size:8.5px; font-weight:600; color:#c9a84c; text-transform:uppercase; letter-spacing:0.12em; padding-bottom:8px; border-bottom:1px solid #c9a84c33; }
+.ic { display:flex; flex-direction:column; gap:3px; }
+.ick { font-size:7.5px; color:#8ba8c4; text-transform:uppercase; letter-spacing:0.07em; }
+.icv { font-size:11px; font-weight:500; color:#e8dfc0; line-height:1.35; word-break:break-word; }
+
+#volvelle-wrap { flex:1; display:flex; flex-direction:column; align-items:center; }
+#mainC { width:580px; height:580px; display:block; cursor:grab; max-width:100%; }
+#mainC.dragging { cursor:grabbing; }
+#hint { text-align:center; font-size:9px; color:#8ba8c4; margin-top:4px; }
+
+/* Pills */
+#pills-section {
+  margin-top: 6px;
+  border-top: 1px solid #c9a84c22;
+  padding-top: 12px;
+  /* Fixed total height = pill row + gap + content area — never changes */
+  min-height: 290px;
+}
+#pills-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.pill {
+  flex: 1;
+  text-align: center;
+  padding: 7px 8px;
+  border-radius: 20px;
+  font-size: 10px; font-weight: 600; color: #8ba8c4;
+  background: #162438; border: 1px solid #c9a84c33;
+  cursor: pointer; user-select: none; transition: all 0.15s; white-space: nowrap;
+}
+.pill:hover { color: #e8dfc0; border-color: #c9a84c66; }
+.pill.active { background: #c9a84c; color: #0d1b2e; border-color: #c9a84c; font-weight: 700; }
+#pill-content {
+  color: #c8d8e8; font-size: 11.5px; line-height: 1.75;
+  padding: 0 4px;
+  height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c9a84c33 transparent;
+}
+#pill-content::-webkit-scrollbar { width: 4px; }
+#pill-content::-webkit-scrollbar-track { background: transparent; }
+#pill-content::-webkit-scrollbar-thumb { background: #c9a84c44; border-radius: 4px; }
+#pill-content::-webkit-scrollbar-thumb:hover { background: #c9a84c88; }
+#pill-content h3 { font-size:13px; font-weight:700; color:#c9a84c; margin-bottom:10px; letter-spacing:0.04em; }
+#pill-content h4 { font-size:11.5px; font-weight:600; color:#e8dfc0; margin:12px 0 5px; }
+#pill-content ul { margin-left:18px; margin-bottom:10px; }
+#pill-content li { margin-bottom:4px; }
+#pill-content strong { color:#e8dfc0; }
+#pill-content p { margin-bottom:10px; }
+.progression-chain {
+  background:#162438; border:1px solid #c9a84c33; border-radius:8px;
+  padding:12px 16px; margin:10px 0;
+  color:#c9a84c; font-weight:600; font-size:12px; letter-spacing:0.04em;
+  line-height:1.8;
+}
+.trubyte-table { width:100%; border-collapse:collapse; font-size:11px; margin-top:8px; }
+.trubyte-table th { color:#c9a84c; text-align:left; padding:6px 12px; border-bottom:1px solid #c9a84c44; font-size:9px; text-transform:uppercase; letter-spacing:0.08em; }
+.trubyte-table td { padding:6px 12px; color:#e8dfc0; border-bottom:1px solid #ffffff08; }
+.trubyte-table tr:hover td { background:#162438; }
+.trubyte-table td:first-child { font-weight:600; color:#c9a84c; width:90px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <h1>Porcelain Veneer Color Wheel</h1>
+
+  </div>
+
+  <div id="top-row">
+    <div class="dd-group" style="max-width:190px;min-width:190px;flex-shrink:0">
+      <span class="dd-label">Clinical Record</span>
+      <div class="field-box">Row <span id="i-row">—</span></div>
+    </div>
+    <div class="dd-group">
+      <span class="dd-label">Prepared Tooth Shade</span>
+      <div class="custom-dd" id="dd-prep">
+        <div class="custom-dd-trigger" id="dd-prep-trigger">
+          <span id="dd-prep-label">Select prepared tooth…</span>
+          <span class="arrow" id="dd-prep-arrow"></span>
+        </div>
+        <div class="custom-dd-menu" id="dd-prep-menu"></div>
+      </div>
+    </div>
+    <div class="dd-group">
+      <span class="dd-label">Desired Tooth Shade</span>
+      <div class="custom-dd" id="dd-des">
+        <div class="custom-dd-trigger disabled" id="dd-des-trigger">
+          <span id="dd-des-label">Select desired shade…</span>
+          <span class="arrow" id="dd-des-arrow"></span>
+        </div>
+        <div class="custom-dd-menu" id="dd-des-menu"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-row">
+    <div id="info-panel">
+      <div id="info-title">Details</div>
+      <div class="ic"><span class="ick">Prepared Tooth</span><span class="icv" id="i-prep">—</span></div>
+      <div class="ic"><span class="ick">Desired Shade</span><span class="icv" id="i-desired">—</span></div>
+      <div class="ic"><span class="ick">Opacity</span><span class="icv" id="i-opacity">—</span></div>
+      <div class="ic"><span class="ick">Request from Lab</span><span class="icv" id="i-lab">—</span></div>
+      <div class="ic"><span class="ick">Die Spacer</span><span class="icv" id="i-die">—</span></div>
+      <div class="ic"><span class="ick">Luting Resin</span><span class="icv" id="i-resin">—</span></div>
+    </div>
+    <div id="volvelle-wrap">
+      <canvas id="mainC" width="580" height="580"></canvas>
+      <div id="hint">Drag disc or use dropdowns above · Arrow snaps on release</div>
+    </div>
+  </div>
+
+  <div id="pills-section">
+    <div id="pills-row">
+      <div class="pill" data-pill="vita">VITA Lumin Shade Guide</div>
+      <div class="pill" data-pill="categories">Shade Categories</div>
+      <div class="pill" data-pill="progression">Progression</div>
+      <div class="pill" data-pill="guides">VITA Shade Guides</div>
+      <div class="pill" data-pill="trubyte">Trubyte Bioform</div>
+    </div>
+    <div id="pill-content"></div>
+  </div>
+</div>
+
+<script>
+const PILL_CONTENT = {
+  vita: `<h3>VITA Lumin Shade Guide</h3>
+    <p>The <strong>VITA Lumin Shade Guide</strong> (officially the VITA Classical A1–D4®) is the global standard in dentistry for determining tooth color and matching crowns, veneers, and composites. It features <strong>16 natural shades</strong> categorized by base color (hue) and saturation (chroma) to ensure accurate restorative results.</p>
+    <p>Introduced by VITA Zahnfabrik, this guide has become the universal reference system used by clinicians, ceramists, and dental laboratories worldwide for consistent, esthetic shade communication.</p>`,
+  categories: `<h3>Shade Categories</h3>
+    <p>The guide breaks down into four primary hue groups:</p>
+    <ul>
+      <li><strong>A — Reddish-Brown:</strong> A1, A2, A3, A3.5, A4</li>
+      <li><strong>B — Reddish-Yellow:</strong> B1, B2, B3, B4</li>
+      <li><strong>C — Greyish:</strong> C1, C2, C3, C4</li>
+      <li><strong>D — Reddish-Grey:</strong> D2, D3, D4</li>
+    </ul>
+    <p>Each letter represents a distinct <strong>hue family</strong>. Within each family, the number indicates increasing <strong>chroma (saturation/intensity)</strong> — the higher the number, the more saturated and darker the shade.</p>`,
+  progression: `<h3>Progression</h3>
+    <p>Within each letter category, the numbers indicate the level of <strong>saturation</strong>. A tooth shade progresses from a lighter, less saturated hue (like A1) to a darker, more saturated hue (like A4). B1 is typically considered the lightest natural shade, even whiter than A1.</p>
+    <h4>Overall VITA Classical Progression by Value (Brightness)</h4>
+    <p>When tabs are rearranged according to <strong>value (lightness)</strong> rather than the factory hue arrangement, the approximate progression from brightest to darkest is:</p>
+    <div class="progression-chain">B1 → A1 → B2 → D2 → A2 → C1 → C2 → D4 → A3 → D3 → B3 → A3.5 → B4 → C3 → A4 → C4</div>
+    <p>This sequence is often preferred for clinical shade selection because the human eye perceives <strong>value more accurately than hue</strong>.</p>`,
+  guides: `<h3>VITA Shade Guides</h3>
+    <ul>
+      <li><strong>VITA Classical A1–D4 Shade Guide:</strong> The original industry standard for consistent, esthetic shade matching.</li>
+      <li><strong>VITA Toothguide 3D-MASTER:</strong> Scientifically structured for systematic, reproducible shade selection.</li>
+      <li><strong>VITA Bleachedguide 3D-MASTER:</strong> Designed for accurate shade determination of bleached and naturally bright teeth.</li>
+      <li><strong>VITA Linearguide 3D-MASTER:</strong> A simplified, linear approach to the 3D-MASTER system for fast, reliable results.</li>
+      <li><strong>VITA Easyshade Devices:</strong> Digital shade measurement tools for objective, instant shade determination.</li>
+    </ul>`,
+  trubyte: `<h3>Classic Dentsply Trubyte Bioform — Denture Shade Conversion</h3>
+    <table class="trubyte-table">
+      <thead><tr><th>VITA Shade</th><th>Trubyte Bioform Equivalents</th></tr></thead>
+      <tbody>
+        <tr><td>B1</td><td>B59</td></tr>
+        <tr><td>A1</td><td>B51, B59</td></tr>
+        <tr><td>B2</td><td>B52, B63, B66, B68, B92</td></tr>
+        <tr><td>A2</td><td>B53, B59, B62</td></tr>
+        <tr><td>A3</td><td>B54, B65</td></tr>
+        <tr><td>B3</td><td>B55, B56, B64, B65, B67, B77, B95</td></tr>
+        <tr><td>A3.5</td><td>B83, B96</td></tr>
+        <tr><td>A4</td><td>B78, B81, B84, B96</td></tr>
+        <tr><td>B4</td><td>B56, B70, B83, B84</td></tr>
+        <tr><td>C1</td><td>B59, B69, B91</td></tr>
+        <tr><td>C2</td><td>B94</td></tr>
+        <tr><td>C3</td><td>B95</td></tr>
+        <tr><td>C4</td><td>B96</td></tr>
+        <tr><td>D2</td><td>B92</td></tr>
+        <tr><td>D3</td><td>B65, B93</td></tr>
+        <tr><td>D4</td><td>B69</td></tr>
+      </tbody>
+    </table>`
+};
+
+function showPill(key) {
+  document.getElementById("pill-content").innerHTML = PILL_CONTENT[key];
+  document.querySelectorAll(".pill").forEach(p => p.classList.toggle("active", p.dataset.pill === key));
+}
+document.querySelectorAll(".pill").forEach(p => p.addEventListener("click", () => showPill(p.dataset.pill)));
+// No pill active by default — user clicks to reveal content
+
+const DATA = [
+  { row:"01", prep:"Any Color",          desired:"No Color Change", lab:"1/2 shade lighter than desired color", opacity:"Minimum", die:5,  resin:"Clear Or Untinted Resin" },
+  { row:"02", prep:"A2",                 desired:"A1",              lab:"Light A1",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"03", prep:"A3",                 desired:"A1",              lab:"Light A1",                             opacity:"Minimum", die:7,  resin:"Clear + 10% White" },
+  { row:"04", prep:"A3",                 desired:"A2",              lab:"Light A2",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"05", prep:"A3.5",               desired:"A1",              lab:"Light A1",                             opacity:"Medium",  die:7,  resin:"Light Opaque" },
+  { row:"06", prep:"A3.5",               desired:"A2",              lab:"Light A2",                             opacity:"Medium",  die:7,  resin:"Clear + 5% Light Opaque" },
+  { row:"07", prep:"A3.5",               desired:"A3",              lab:"Light A3",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"08", prep:"A4",                 desired:"A1",              lab:"Light A1",                             opacity:"Maximum", die:8,  resin:"Light Opaque - Universal Opaque" },
+  { row:"09", prep:"A4",                 desired:"A2",              lab:"A1.5",                                 opacity:"Medium",  die:8,  resin:"1/2 Light Opaque - 1/2 A1 - B1 Range" },
+  { row:"10", prep:"A4",                 desired:"A3",              lab:"Light A3",                             opacity:"Medium",  die:7,  resin:"Clear + 20% White" },
+  { row:"11", prep:"B2",                 desired:"B1",              lab:"Light B1",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"12", prep:"B3",                 desired:"B1",              lab:"Light B1",                             opacity:"Medium",  die:8,  resin:"50% Clear + 50% Light Opaque" },
+  { row:"13", prep:"B3",                 desired:"B2",              lab:"Light B2",                             opacity:"Minimum", die:6,  resin:"Clear + 10% White" },
+  { row:"14", prep:"B4",                 desired:"B1",              lab:"Light B1",                             opacity:"Maximum", die:8,  resin:"Light Opaque + 20% Universal Opaque + 20% White" },
+  { row:"15", prep:"B4",                 desired:"B2",              lab:"Light B2",                             opacity:"Medium",  die:7,  resin:"1/2 Light Opaque + 1/2 A1 + B1 Range" },
+  { row:"16", prep:"B4",                 desired:"B3",              lab:"Light B3",                             opacity:"Minimum", die:6,  resin:"Clear + 10% A1 Range" },
+  { row:"17", prep:"C2",                 desired:"C1",              lab:"Light C1",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"18", prep:"C3",                 desired:"C1",              lab:"Light C1",                             opacity:"Medium",  die:8,  resin:"Clear + 10% White" },
+  { row:"19", prep:"C3",                 desired:"C2",              lab:"Light C2",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"20", prep:"C4",                 desired:"C1",              lab:"Light C1",                             opacity:"Maximum", die:8,  resin:"Light Opaque + 10% Tetracycline Opaque" },
+  { row:"21", prep:"C4",                 desired:"C2",              lab:"Light C2",                             opacity:"Medium",  die:8,  resin:"Light Opaque + A1 Range" },
+  { row:"22", prep:"C4",                 desired:"C3",              lab:"Light C3",                             opacity:"Minimum", die:6,  resin:"Clear" },
+  { row:"23", prep:"D3",                 desired:"D2",              lab:"Light D2",                             opacity:"Minimum", die:6,  resin:"Clear + 5% White" },
+  { row:"24", prep:"D4",                 desired:"D2",              lab:"Light D2",                             opacity:"Maximum", die:8,  resin:"5% Clear + 5% Light Opaque + 25% A1 - B1 Range" },
+  { row:"25", prep:"D4",                 desired:"D3",              lab:"Light D3",                             opacity:"Minimum", die:6,  resin:"Clear + 10% White" },
+  { row:"26", prep:"Brown Tetracycline", desired:"A1",              lab:"Light A1",                             opacity:"Maximum", die:8,  resin:"Light Opaque + Translucent Opaque" },
+  { row:"27", prep:"Purple Tetracycline",desired:"A1",              lab:"Light A1",                             opacity:"Maximum", die:8,  resin:"Universal Opaque + Tetracycline Opaque" },
+  { row:"28", prep:"Gray Tetracycline",  desired:"A1",              lab:"Light A1 + Pink",                      opacity:"Maximum", die:8,  resin:"Tetracycline Opaque" },
+];
+
+const PREP_MAP = {};
+DATA.forEach(d => {
+  if (!PREP_MAP[d.prep]) PREP_MAP[d.prep] = [];
+  if (!PREP_MAP[d.prep].includes(d.desired)) PREP_MAP[d.prep].push(d.desired);
+});
+
+let selectedPrep=null,selectedDesired=null,prepOpen=false,desOpen=false;
+const prepTrigger=document.getElementById("dd-prep-trigger");
+const prepLabel=document.getElementById("dd-prep-label");
+const prepArrow=document.getElementById("dd-prep-arrow");
+const prepMenu=document.getElementById("dd-prep-menu");
+const desTrigger=document.getElementById("dd-des-trigger");
+const desLabel=document.getElementById("dd-des-label");
+const desArrow=document.getElementById("dd-des-arrow");
+const desMenu=document.getElementById("dd-des-menu");
+
+function closeAll(){prepOpen=false;prepMenu.classList.remove("open");prepArrow.classList.remove("open");desOpen=false;desMenu.classList.remove("open");desArrow.classList.remove("open");}
+
+[...new Map(DATA.map(d=>[d.prep,d])).keys()].forEach(p=>{
+  const item=document.createElement("div");item.className="custom-dd-item";item.textContent=p;
+  item.addEventListener("click",()=>{
+    selectedPrep=p;prepLabel.textContent=p;prepLabel.style.color="#e8dfc0";closeAll();buildDesMenu(p);
+    const opts=PREP_MAP[p]||[];
+    if(opts.length===1){selectedDesired=opts[0];desLabel.textContent=opts[0];desLabel.style.color="#e8dfc0";desTrigger.classList.remove("disabled");const idx=DATA.findIndex(d=>d.prep===p&&d.desired===opts[0]);if(idx>=0)animateTo(idx);}
+  });
+  prepMenu.appendChild(item);
+});
+
+function buildDesMenu(prep){
+  desMenu.innerHTML="";selectedDesired=null;desLabel.textContent="Select desired shade…";desLabel.style.color="#8ba8c4";desTrigger.classList.remove("disabled");
+  (PREP_MAP[prep]||[]).forEach(ds=>{
+    const item=document.createElement("div");item.className="custom-dd-item";item.textContent=ds;
+    item.addEventListener("click",()=>{selectedDesired=ds;desLabel.textContent=ds;desLabel.style.color="#e8dfc0";closeAll();const idx=DATA.findIndex(d=>d.prep===prep&&d.desired===ds);if(idx>=0)animateTo(idx);});
+    desMenu.appendChild(item);
+  });
+}
+prepTrigger.addEventListener("click",e=>{e.stopPropagation();if(desOpen){desOpen=false;desMenu.classList.remove("open");desArrow.classList.remove("open");}prepOpen=!prepOpen;prepMenu.classList.toggle("open",prepOpen);prepArrow.classList.toggle("open",prepOpen);});
+desTrigger.addEventListener("click",e=>{if(desTrigger.classList.contains("disabled"))return;e.stopPropagation();if(prepOpen){prepOpen=false;prepMenu.classList.remove("open");prepArrow.classList.remove("open");}desOpen=!desOpen;desMenu.classList.toggle("open",desOpen);desArrow.classList.toggle("open",desOpen);});
+document.addEventListener("click",closeAll);
+function syncDDToIndex(idx){const d=DATA[idx];selectedPrep=d.prep;prepLabel.textContent=d.prep;prepLabel.style.color="#e8dfc0";buildDesMenu(d.prep);selectedDesired=d.desired;desLabel.textContent=d.desired;desLabel.style.color="#e8dfc0";}
+
+const BG="#0d1b2e",N=DATA.length,ARC=(2*Math.PI)/N;
+const W=580,CX=290,CY=290;
+const RED_OUTER=282,RED_INNER=160,RING_H=RED_OUTER-RED_INNER;
+const MID=RED_INNER+RING_H*0.5;
+const BLACK_TEXT_R=(RED_OUTER+MID)/2,WHITE_TEXT_R=(MID+RED_INNER)/2;
+const WIN_R=100,ARROW_TIP=RED_INNER-9,ARROW_BASE=108;
+
+function prepLines(s){if(s.includes("Tetracycline"))return[s.replace(" Tetracycline",""),"Tetra"];if(s==="Any Color")return["Any","Color"];return[s];}
+function desLines(s){return s==="No Color Change"?["No","Change"]:[s];}
+function wrapText(ctx,text,maxW){const words=text.split(" "),lines=[];let cur="";for(const w of words){const t=cur?cur+" "+w:w;if(ctx.measureText(t).width<=maxW)cur=t;else{if(cur)lines.push(cur);cur=w;}}if(cur)lines.push(cur);return lines;}
+
+let blueAngle=0,dragging=false,lastA=0,animFrame=null;
+const mainC=document.getElementById("mainC");
+const ctx=mainC.getContext("2d");
+
+function getActiveIdx(){let o=blueAngle%(2*Math.PI);if(o<0)o+=2*Math.PI;let idx=Math.floor(o/ARC)%N;if(idx<0)idx+=N;const tm=idx*ARC+ARC/2,ni=(idx+1)%N,nm=ni*ARC+ARC/2;if(Math.abs(o-nm)<Math.abs(o-tm))idx=ni;return idx;}
+function targetAngle(idx){return Math.floor(blueAngle/(2*Math.PI))*(2*Math.PI)+idx*ARC+ARC/2;}
+function snapToIdx(idx){blueAngle=targetAngle(idx);}
+function animateTo(idx){
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
+  const target=targetAngle(idx);let diff=target-blueAngle;
+  while(diff>Math.PI)diff-=2*Math.PI;while(diff<-Math.PI)diff+=2*Math.PI;
+  const start=blueAngle,t0=performance.now(),dur=500;
+  function step(t){const el=Math.min(t-t0,dur),p=1-Math.pow(1-el/dur,3);blueAngle=start+diff*p;drawAll();if(el<dur){animFrame=requestAnimationFrame(step);}else{blueAngle=start+diff;updatePanel(idx);drawAll();}}
+  animFrame=requestAnimationFrame(step);
+}
+function updatePanel(idx){
+  const d=DATA[idx];
+  document.getElementById("i-row").textContent=d.row;
+  document.getElementById("i-prep").textContent=d.prep;
+  document.getElementById("i-desired").textContent=d.desired;
+  document.getElementById("i-opacity").textContent=d.opacity;
+  document.getElementById("i-lab").textContent=d.lab;
+  document.getElementById("i-die").textContent=d.die+" µm";
+  document.getElementById("i-resin").textContent=d.resin;
+  syncDDToIndex(idx);
+}
+function drawWindow(d){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX, CY, WIN_R, 0, 2*Math.PI);
+  ctx.clip();
+  ctx.fillStyle = "#f5efd4";
+  ctx.fillRect(CX-WIN_R, CY-WIN_R, WIN_R*2, WIN_R*2);
+  ctx.textAlign = "center";
+
+  const sw = WIN_R * 1.55; // safe text width
+
+  // ── ABSOLUTE FIXED POSITIONS — never move regardless of content ──
+  // The circle is WIN_R=100 radius. Center = CY.
+  // We divide the circle into a top zone (header) and bottom zone (body).
+  // Divider line sits at a FIXED Y — always the same line.
+  const DIVIDER_Y   = CY - 8;   // fixed divider position, slightly above center
+  const HEADER_Y    = CY - 52;  // fixed top of header zone
+  const BODY_START_Y = CY + 12; // fixed start of body text, well below divider
+
+  const LH1 = 16; // header line height
+  const LH2 = 13; // body line height
+
+  // ── HEADER: up to 2 lines, anchored from HEADER_Y downward ──
+  ctx.font = "800 11px sans-serif";
+  ctx.fillStyle = "#1a0a00";
+  const hL = wrapText(ctx, d.prep + " → " + d.desired, sw);
+  // Show max 2 lines, centered in top zone
+  const hLines = hL.slice(0, 2);
+  const hTotalH = hLines.length * LH1;
+  // Center the header block in the top zone between HEADER_Y and DIVIDER_Y
+  const topZoneH = DIVIDER_Y - HEADER_Y;
+  let hy = HEADER_Y + (topZoneH - hTotalH) / 2 + LH1;
+  hLines.forEach(l => { ctx.fillText(l, CX, hy); hy += LH1; });
+
+  // ── DIVIDER LINE — always at fixed Y ──
+  ctx.beginPath();
+  ctx.moveTo(CX - sw/2, DIVIDER_Y);
+  ctx.lineTo(CX + sw/2, DIVIDER_Y);
+  ctx.strokeStyle = "#0d1b2e";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // ── BODY: fixed start, flows downward ──
+  // Use 8px font and tight spacing so even long resin strings (3 lines) fit
+  ctx.font = "600 8px sans-serif";
+  ctx.fillStyle = "#3a2000";
+  let by = BODY_START_Y;
+  const LH_BODY = 11; // tighter line height
+
+  const lbL = wrapText(ctx, "Lab: " + d.lab, sw);
+  lbL.forEach(l => { ctx.fillText(l, CX, by); by += LH_BODY; });
+
+  by += 2;
+  ctx.fillText("Opacity: " + d.opacity + "  ·  Die: " + d.die + " µm", CX, by);
+  by += LH_BODY + 3;
+
+  ctx.fillStyle = "#5a3800";
+  const rsL = wrapText(ctx, d.resin, sw);
+  rsL.forEach(l => { ctx.fillText(l, CX, by); by += LH_BODY; });
+
+  ctx.restore();
+}
+function drawAll(){
+  const ai=getActiveIdx();ctx.clearRect(0,0,W,W);ctx.fillStyle=BG;ctx.fillRect(0,0,W,W);
+  [48,88,132].forEach(r=>{ctx.beginPath();ctx.arc(CX,CY,r,0,2*Math.PI);ctx.strokeStyle="#ffffff06";ctx.lineWidth=1;ctx.stroke();});
+  for(let i=0;i<N;i++){
+    const d=DATA[i],start=i*ARC-Math.PI/2,end=start+ARC,mid=(start+end)/2,isA=(i===ai);
+    ctx.beginPath();ctx.arc(CX,CY,RED_OUTER,start,end);ctx.arc(CX,CY,RED_INNER,end,start,true);ctx.closePath();
+    ctx.fillStyle=isA?"#d4890a":(i%2===0?"#aa0000":"#780000");ctx.fill();
+    ctx.beginPath();ctx.moveTo(CX+RED_INNER*Math.cos(start),CY+RED_INNER*Math.sin(start));ctx.lineTo(CX+RED_OUTER*Math.cos(start),CY+RED_OUTER*Math.sin(start));ctx.strokeStyle="#00000033";ctx.lineWidth=0.7;ctx.stroke();
+    const pL=prepLines(d.prep),pFs=pL.length>1?8:11;
+    ctx.save();ctx.translate(CX+BLACK_TEXT_R*Math.cos(mid),CY+BLACK_TEXT_R*Math.sin(mid));ctx.rotate(mid+Math.PI/2);ctx.textAlign="center";ctx.fillStyle="#000";ctx.font=`800 ${pFs}px sans-serif`;
+    pL.length===1?ctx.fillText(pL[0],0,4):(ctx.fillText(pL[0],0,-3),ctx.fillText(pL[1],0,9));ctx.restore();
+    const dL=desLines(d.desired),dFs=dL.length>1?7.5:10;
+    ctx.save();ctx.translate(CX+WHITE_TEXT_R*Math.cos(mid),CY+WHITE_TEXT_R*Math.sin(mid));ctx.rotate(mid+Math.PI/2);ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font=`700 ${dFs}px sans-serif`;
+    dL.length===1?ctx.fillText(dL[0],0,4):(ctx.fillText(dL[0],0,-3),ctx.fillText(dL[1],0,9));ctx.restore();
+  }
+  ctx.beginPath();ctx.arc(CX,CY,MID,0,2*Math.PI);ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke();
+  const aa=blueAngle-Math.PI/2,tx=CX+ARROW_TIP*Math.cos(aa),ty=CY+ARROW_TIP*Math.sin(aa),bx=CX+ARROW_BASE*Math.cos(aa),by=CY+ARROW_BASE*Math.sin(aa),perp=aa+Math.PI/2,hw=12;
+  ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(bx,by);ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.lineCap="round";ctx.stroke();
+  ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(bx+hw*Math.cos(perp),by+hw*Math.sin(perp));ctx.lineTo(bx-hw*Math.cos(perp),by-hw*Math.sin(perp));ctx.closePath();ctx.fillStyle="#fff";ctx.fill();
+  drawWindow(DATA[ai]);
+}
+function updateAll(snap){if(snap)snapToIdx(getActiveIdx());const idx=getActiveIdx();drawAll();updatePanel(idx);}
+function angleOf(e){const r=mainC.getBoundingClientRect(),sx=W/r.width,sy=W/r.height;return Math.atan2(((e.clientY||(e.touches&&e.touches[0].clientY)||0)-r.top)*sy-CY,((e.clientX||(e.touches&&e.touches[0].clientX)||0)-r.left)*sx-CX);}
+mainC.addEventListener("mousedown",e=>{if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}dragging=true;lastA=angleOf(e);mainC.classList.add("dragging");});
+mainC.addEventListener("mousemove",e=>{if(!dragging)return;const a=angleOf(e);blueAngle+=a-lastA;lastA=a;drawAll();});
+mainC.addEventListener("mouseup",()=>{if(dragging)updateAll(true);dragging=false;mainC.classList.remove("dragging");});
+mainC.addEventListener("mouseleave",()=>{if(dragging)updateAll(true);dragging=false;mainC.classList.remove("dragging");});
+mainC.addEventListener("touchstart",e=>{e.preventDefault();if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}dragging=true;lastA=angleOf(e);},{passive:false});
+mainC.addEventListener("touchmove",e=>{e.preventDefault();if(!dragging)return;const a=angleOf(e);blueAngle+=a-lastA;lastA=a;drawAll();},{passive:false});
+mainC.addEventListener("touchend",()=>{if(dragging)updateAll(true);dragging=false;},{passive:false});
+
+snapToIdx(2);drawAll();
+prepLabel.textContent="Select prepared tooth…";prepLabel.style.color="#8ba8c4";
+desLabel.textContent="Select desired shade…";desLabel.style.color="#8ba8c4";
+desTrigger.classList.add("disabled");
+["i-row","i-prep","i-desired","i-opacity","i-lab","i-die","i-resin"].forEach(id=>document.getElementById(id).textContent="—");
+</script>
+</body>
+</html>
